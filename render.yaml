@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: shopify-product-description
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: POLAR_API_KEY
+        sync: false
+      - key: POLAR_PRODUCT_ID
+        sync: false
+      - key: APP_SECRET_KEY
+        generateValue: true
+      - key: PLAUSIBLE_DOMAIN
+        sync: false
+      - key: PYTHON_VERSION
+        value: 3.12.0

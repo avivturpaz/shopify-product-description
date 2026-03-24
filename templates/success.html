@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Payment Successful</title>
+    <meta name="description" content="Your payment was successful. Start generating Shopify product descriptions now.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <script defer src="https://cdn.tailwindcss.com"></script>
+    {% if plausible_domain %}
+    <script defer data-domain="{{ plausible_domain }}" src="https://plausible.io/js/script.js"></script>
+    {% endif %}
+    <style>body { font-family: "Space Grotesk", sans-serif; }</style>
+  </head>
+  <body class="bg-slate-950 text-white">
+    <main class="mx-auto flex min-h-screen max-w-3xl items-center px-4 py-16">
+      <section class="w-full rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-2xl shadow-black/20">
+        <p class="text-sm font-bold uppercase tracking-[0.24em] text-amber-300">Payment successful</p>
+        <h1 class="mt-4 text-5xl font-black tracking-tight">You’re ready to generate faster copy</h1>
+        <p class="mt-4 max-w-2xl text-lg leading-8 text-slate-300">
+          Start pasting product titles and specs to create professional, casual, and urgent Shopify descriptions in one pass.
+        </p>
+        <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+          <a href="/" class="inline-flex items-center justify-center rounded-full bg-amber-500 px-8 py-3 text-lg font-bold text-slate-950 transition hover:bg-amber-400">
+            Back to generator
+          </a>
+          <a href="/pay" class="inline-flex items-center justify-center rounded-full border border-white/15 px-8 py-3 text-lg font-bold text-white transition hover:bg-white/10">
+            Open checkout again
+          </a>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,8 +1,11 @@
 import json
+import logging
 import os
 import re
 import sqlite3
 from datetime import datetime, timezone
+
+logging.basicConfig(level=logging.INFO)
 
 from flask import Flask, jsonify, redirect, render_template, request, url_for
 from flask_limiter import Limiter
@@ -107,7 +110,10 @@ def clean_text(value, max_length=4000):
 
 def generate_description(title: str, specs: str, tone: str, audience: str = "") -> str:
     """Call Groq to generate a Shopify product description."""
+    logging.info("Received request: product_name=%s, details=%s", title, specs[:80])
+
     if not GROQ_API_KEY:
+        logging.error("Error: GROQ_API_KEY not set")
         write_pm_alert(PRODUCT_NAME, "api_error", "GROQ_API_KEY not set")
         return "Could not generate description. Please try again."
 
@@ -121,6 +127,7 @@ def generate_description(title: str, specs: str, tone: str, audience: str = "") 
     )
 
     try:
+        logging.info("Calling Groq... (tone=%s)", tone)
         client = Groq(api_key=GROQ_API_KEY)
         response = client.chat.completions.create(
             model=GROQ_MODEL,
@@ -134,8 +141,11 @@ def generate_description(title: str, specs: str, tone: str, audience: str = "") 
             max_tokens=400,
             temperature=0.7,
         )
-        return response.choices[0].message.content.strip()
+        result = response.choices[0].message.content.strip()
+        logging.info("Groq response received: %s", result[:100])
+        return result
     except Exception as e:
+        logging.error("Error: %s", e)
         write_pm_alert(PRODUCT_NAME, "api_error", str(e))
         return "Could not generate description. Please try again."
 

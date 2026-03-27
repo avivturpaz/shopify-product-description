@@ -2,23 +2,61 @@ import json
 import os
 import re
 import sqlite3
+import sys
 from datetime import datetime, timezone
 
 from flask import Flask, jsonify, redirect, render_template, request, url_for
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from groq import Groq
 from werkzeug.exceptions import HTTPException
 
+# Make venture package importable from the build directory
+_venture_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if _venture_root not in sys.path:
+    sys.path.insert(0, _venture_root)
 
-required = ["POLAR_PRODUCT_ID", "APP_SECRET_KEY"]
-missing = [v for v in required if not os.environ.get(v)]
-if missing:
-    raise RuntimeError(f"Missing env vars: {missing}")
-
+try:
+    from venture.memory import write_pm_alert
+except Exception:
+    def write_pm_alert(product, alert_type, message):
+        pass  # fallback if venture package unavailable
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "data.db")
 
 app = Flask(__name__)
-app.secret_key = os.environ["APP_SECRET_KEY"]
+required = ["POLAR_PRODUCT_ID", "APP_SECRET_KEY"]
+missing = [v for v in required if not os.environ.get(v)]
+if missing:
+    app.logger.error("Missing env vars at startup: %s", missing)
+    if os.environ.get("STRICT_ENV_VALIDATION") == "1":
+        raise RuntimeError(f"Missing env vars: {missing}")
+
+app.secret_key = os.environ.get("APP_SECRET_KEY", "dev-only-secret-key")
+
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+GROQ_MODEL = "llama-3.3-70b-versatile"
+PRODUCT_NAME = "shopify-product-description"
+
+limiter = Limiter(
+    key_func=get_remote_address,
+    app=app,
+    default_limits=[],
+    storage_uri="memory://",
+)
+
+# Track daily limit hits for aggregate alert
+_free_limit_hits_key = {}
+
+
+def _is_paid() -> bool:
+    from flask import session
+    return session.get("paid") is True
+
+
+def _get_ip() -> str:
+    return request.headers.get("X-Forwarded-For", request.remote_addr) or "unknown"
 
 
 def get_db():
@@ -42,6 +80,15 @@ def init_db():
             )
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS daily_limit_hits (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ip TEXT NOT NULL,
+                date TEXT NOT NULL
+            )
+            """
+        )
         conn.commit()
     finally:
         conn.close()
@@ -55,38 +102,39 @@ def clean_text(value, max_length=4000):
     return value[:max_length]
 
 
-def split_features(specs):
-    raw = clean_text(specs)
-    if not raw:
-        return []
+def generate_description(title: str, specs: str, tone: str, audience: str = "") -> str:
+    """Call Groq to generate a Shopify product description."""
+    if not GROQ_API_KEY:
+        write_pm_alert(PRODUCT_NAME, "api_error", "GROQ_API_KEY not set")
+        return "Could not generate description. Please try again."
 
-    candidates = []
-    for chunk in re.split(r"[\n\r;]+", raw):
-        chunk = chunk.strip()
-        if not chunk:
-            continue
-        if chunk.startswith(("-", "•", "*")):
-            chunk = chunk[1:].strip()
-        parts = [part.strip() for part in re.split(r",\s+", chunk) if part.strip()]
-        if len(parts) > 1 and len(chunk) < 180:
-            candidates.extend(parts)
-        else:
-            candidates.append(chunk)
+    audience_line = f"Target audience: {audience}\n" if audience else ""
+    user_prompt = (
+        f"Product: {title}\n"
+        f"Details: {specs}\n"
+        f"{audience_line}"
+        f"Tone: {tone}\n\n"
+        "Write a Shopify product description."
+    )
 
-    features = []
-    seen = set()
-    for item in candidates:
-        normalized = re.sub(r"\s+", " ", item).strip(" .")
-        if len(normalized) < 3:
-            continue
-        key = normalized.lower()
-        if key in seen:
-            continue
-        seen.add(key)
-        features.append(normalized)
-        if len(features) == 5:
-            break
-    return features
+    try:
+        client = Groq(api_key=GROQ_API_KEY)
+        response = client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an expert Shopify copywriter. Write compelling product descriptions that convert browsers into buyers.",
+                },
+                {"role": "user", "content": user_prompt},
+            ],
+            max_tokens=400,
+            temperature=0.7,
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        write_pm_alert(PRODUCT_NAME, "api_error", str(e))
+        return "Could not generate description. Please try again."
 
 
 def extract_keywords(title, specs):
@@ -103,71 +151,6 @@ def extract_keywords(title, specs):
             if word not in tokens:
                 tokens.append(word)
     return tokens[:8]
-
-
-def summarize_benefits(title, specs, audience):
-    features = split_features(specs)
-    audience_text = f"for {audience}" if audience else "for Shopify merchants"
-    title_text = title.strip().rstrip(".")
-    intro = (
-        f"{title_text} is built {audience_text} who need product copy that reads cleanly, "
-        f"supports SEO, and makes the offer easier to buy."
-    )
-    if features:
-        intro += f" It highlights {features[0].lower()} and keeps the message focused on shopper value."
-    return intro
-
-
-def format_feature_bullets(features, tone):
-    if not features:
-        fallback = {
-            "professional": "Clear positioning, polished structure, and keyword-aware copy.",
-            "casual": "Easy-to-read copy that sounds human and converts better.",
-            "urgent": "Fast-moving copy that makes the next step obvious.",
-        }
-        return [fallback[tone]]
-
-    bullets = []
-    for feature in features[:4]:
-        bullets.append(feature[0].upper() + feature[1:] if feature else feature)
-    return bullets
-
-
-def generate_description(title, specs, tone, audience=""):
-    features = split_features(specs)
-    benefits = summarize_benefits(title, specs, audience)
-    bullets = format_feature_bullets(features, tone)
-    keyword_focus = ", ".join(extract_keywords(title, specs)[:5])
-
-    if tone == "professional":
-        lead = (
-            f"{title} delivers a polished product description designed to improve clarity, "
-            f"reinforce trust, and support search visibility."
-        )
-        closer = "Use this version when you want the listing to feel credible, complete, and ready for conversion."
-    elif tone == "casual":
-        lead = (
-            f"{title} gets a friendlier, more natural description that sounds like a helpful recommendation, "
-            f"not a block of marketing copy."
-        )
-        closer = "Use this version when you want shoppers to feel like they already understand the value."
-    else:
-        lead = (
-            f"{title} gets an urgency-led description that pushes the shopper toward action without losing the key benefits."
-        )
-        closer = "Use this version when you want to create momentum and reduce hesitation."
-
-    lines = [lead, "", benefits, "", "Highlights:"]
-    lines.extend([f"- {bullet}" for bullet in bullets])
-    lines.extend(
-        [
-            "",
-            f"SEO focus: {keyword_focus}" if keyword_focus else "SEO focus: conversion-ready product language",
-            "",
-            closer,
-        ]
-    )
-    return "\n".join(lines).strip()
 
 
 def build_response(title, specs, audience, row_id):
@@ -240,15 +223,16 @@ def health():
 
 @app.route("/")
 def index():
+    # Build sample tones using static text (avoid Groq calls on page load)
+    sample_tones = {
+        "professional": "Premium Stainless Steel Water Bottle delivers a polished product description designed to improve clarity, reinforce trust, and support search visibility.",
+        "casual": "Premium Stainless Steel Water Bottle gets a friendlier, more natural description that sounds like a helpful recommendation.",
+        "urgent": "Premium Stainless Steel Water Bottle gets an urgency-led description that pushes the shopper toward action.",
+    }
     return render_template(
         "index.html",
         plausible_domain=os.environ.get("PLAUSIBLE_DOMAIN", ""),
-        sample_tones=build_response(
-            "Premium Stainless Steel Water Bottle",
-            "Insulated, leak-proof lid, 24-hour cold retention, BPA-free, 32 oz capacity",
-            "busy shoppers",
-            0,
-        )["tones"],
+        sample_tones=sample_tones,
     )
 
 
@@ -269,7 +253,71 @@ def submit():
     if not specs:
         return json_error("Product specs are required", status=400)
 
+    ip = _get_ip()
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    if _is_paid():
+        # Paid: unlimited, but alert on heavy use
+        conn = get_db()
+        try:
+            count = conn.execute(
+                "SELECT COUNT(*) FROM generations WHERE created_at >= ?",
+                (today,),
+            ).fetchone()[0]
+        finally:
+            conn.close()
+        if count >= 45:
+            write_pm_alert(
+                PRODUCT_NAME,
+                "usage_warning",
+                f"IP {ip} reached 45 generations today",
+            )
+    else:
+        # Free: 1 generation per IP per day
+        conn = get_db()
+        try:
+            used = conn.execute(
+                "SELECT COUNT(*) FROM generations WHERE created_at >= ? AND json_extract(output_json, '$.ip') = ?",
+                (today, ip),
+            ).fetchone()[0]
+        finally:
+            conn.close()
+
+        if used >= 1:
+            # Track aggregate free limit hits for the day
+            conn = get_db()
+            try:
+                conn.execute(
+                    "INSERT INTO daily_limit_hits (ip, date) VALUES (?, ?)",
+                    (ip, today),
+                )
+                conn.commit()
+                hit_count = conn.execute(
+                    "SELECT COUNT(DISTINCT ip) FROM daily_limit_hits WHERE date = ?",
+                    (today,),
+                ).fetchone()[0]
+            finally:
+                conn.close()
+
+            if hit_count >= 20:
+                write_pm_alert(
+                    PRODUCT_NAME,
+                    "info",
+                    "20+ free users hit limit today",
+                )
+
+            polar_id = os.environ.get("POLAR_PRODUCT_ID", "").strip()
+            pay_url = f"https://buy.polar.sh/{polar_id}" if polar_id else "/pay"
+            return json_error(
+                f"You've used your free generation. Get unlimited access for $15.",
+                status=429,
+                pay_url=pay_url,
+            )
+
     result = build_response(title, specs, audience, 0)
+    # Embed IP for free-tier tracking
+    result["ip"] = ip
+
     conn = get_db()
     try:
         cursor = conn.execute(
@@ -290,7 +338,9 @@ def submit():
     finally:
         conn.close()
 
-    result = build_response(title, specs, audience, row_id)
+    result["id"] = row_id
+    result.pop("ip", None)
+
     conn = get_db()
     try:
         conn.execute(

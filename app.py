@@ -138,7 +138,7 @@ def generate_description(title: str, specs: str, tone: str, audience: str = "") 
                 },
                 {"role": "user", "content": user_prompt},
             ],
-            max_tokens=400,
+            max_tokens=1024,
             temperature=0.7,
         )
         result = response.choices[0].message.content.strip()

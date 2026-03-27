@@ -2,7 +2,6 @@ import json
 import os
 import re
 import sqlite3
-import sys
 from datetime import datetime, timezone
 
 from flask import Flask, jsonify, redirect, render_template, request, url_for
@@ -11,19 +10,23 @@ from flask_limiter.util import get_remote_address
 from groq import Groq
 from werkzeug.exceptions import HTTPException
 
-# Make venture package importable from the build directory
-_venture_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-if _venture_root not in sys.path:
-    sys.path.insert(0, _venture_root)
-
-try:
-    from venture.memory import write_pm_alert
-except Exception:
-    def write_pm_alert(product, alert_type, message):
-        pass  # fallback if venture package unavailable
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "data.db")
+
+_PM_DB_PATH = os.environ.get("DB_PATH", os.path.expanduser("~/projects/venture/data/venture.db"))
+
+
+def write_pm_alert(product, alert_type, message):
+    try:
+        conn = sqlite3.connect(_PM_DB_PATH)
+        conn.execute(
+            "INSERT INTO pm_alerts (product, alert_type, message) VALUES (?, ?, ?)",
+            (product, alert_type, message),
+        )
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
 
 app = Flask(__name__)
 required = ["POLAR_PRODUCT_ID", "APP_SECRET_KEY"]

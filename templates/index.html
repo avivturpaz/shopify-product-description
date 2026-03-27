@@ -9,107 +9,260 @@
     <meta property="og:description" content="Generate SEO-optimized Shopify product descriptions in professional, casual, and urgent tones from a title and specs.">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <script defer src="https://cdn.tailwindcss.com"></script>
-    {% if plausible_domain %}
-    <script defer data-domain="{{ plausible_domain }}" src="https://plausible.io/js/script.js"></script>
-    {% endif %}
     <style>
-      :root { color-scheme: light; }
-      body { font-family: "Space Grotesk", sans-serif; }
+      :root {
+        color-scheme: light;
+        --bg: #0f172a;
+        --panel: rgba(15, 23, 42, 0.92);
+        --panel-soft: rgba(255, 255, 255, 0.08);
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --accent: #f59e0b;
+        --accent-strong: #fbbf24;
+        --border: rgba(148, 163, 184, 0.22);
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top, rgba(59, 130, 246, 0.16), transparent 32%),
+          linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      }
+      a { color: inherit; text-decoration: none; }
+      main { max-width: 1180px; margin: 0 auto; padding: 24px 16px 40px; }
+      .hero {
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.88));
+        box-shadow: 0 24px 80px rgba(2, 6, 23, 0.45);
+        overflow: hidden;
+      }
+      .hero-grid {
+        display: grid;
+        gap: 28px;
+        padding: 24px;
+      }
+      @media (min-width: 1024px) {
+        .hero-grid { grid-template-columns: 1.05fr 0.95fr; padding: 40px; }
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 10px 16px;
+        background: rgba(255, 255, 255, 0.04);
+        font-size: 14px;
+        font-weight: 700;
+        color: #dbeafe;
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(2.8rem, 6vw, 4.8rem);
+        line-height: 0.95;
+        letter-spacing: -0.05em;
+        font-weight: 900;
+        color: #fff;
+      }
+      h2, h3, h4 { margin: 0; color: #fff; }
+      p { margin: 0; line-height: 1.7; }
+      .lead { font-size: 1.05rem; color: #cbd5e1; max-width: 58rem; }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 8px;
+      }
+      .cta, .secondary, .small-cta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        padding: 14px 24px;
+        font-size: 1rem;
+        font-weight: 800;
+        transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+      }
+      .cta {
+        background: var(--accent);
+        color: #111827;
+        border: 1px solid transparent;
+      }
+      .secondary {
+        border: 1px solid rgba(226, 232, 240, 0.22);
+        background: rgba(255, 255, 255, 0.04);
+        color: #f8fafc;
+      }
+      .small-cta {
+        background: var(--accent);
+        color: #111827;
+        padding: 12px 18px;
+      }
+      .cta:hover, .secondary:hover, .small-cta:hover { transform: translateY(-1px); }
+      .muted { color: var(--muted); }
+      .feature-grid, .info-grid, .copy-grid { display: grid; gap: 16px; }
+      @media (min-width: 768px) {
+        .feature-grid, .info-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      }
+      .glass, .paper, .pricing {
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .glass { padding: 20px; }
+      .paper {
+        background: rgba(255, 255, 255, 0.92);
+        color: #0f172a;
+        padding: 20px;
+      }
+      .pricing {
+        background: rgba(255, 255, 255, 0.04);
+        padding: 20px;
+      }
+      .panel-title {
+        text-transform: uppercase;
+        letter-spacing: 0.22em;
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: #94a3b8;
+      }
+      .studio {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 28px;
+        background: linear-gradient(180deg, rgba(2, 6, 23, 0.95), rgba(15, 23, 42, 0.95));
+        padding: 22px;
+        box-shadow: 0 18px 50px rgba(2, 6, 23, 0.28);
+      }
+      .field { display: block; }
+      .field span {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: #e2e8f0;
+      }
+      input, textarea {
+        width: 100%;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.06);
+        color: #fff;
+        padding: 14px 16px;
+        font: inherit;
+        outline: none;
+      }
+      input::placeholder, textarea::placeholder { color: #94a3b8; }
+      input:focus, textarea:focus { border-color: rgba(251, 191, 36, 0.8); }
+      textarea { resize: vertical; min-height: 140px; }
+      .status { font-size: 0.95rem; color: #cbd5e1; }
+      .output-card {
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.94);
+        color: #0f172a;
+        padding: 20px;
+      }
+      .section-grid { display: grid; gap: 24px; margin-top: 24px; }
+      @media (min-width: 1024px) {
+        .section-grid { grid-template-columns: 1.2fr 0.8fr; }
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
     </style>
   </head>
-  <body class="bg-[radial-gradient(circle_at_top,_rgba(15,23,42,0.05),_transparent_36%),linear-gradient(180deg,_#ffffff_0%,_#f8fafc_50%,_#eef2ff_100%)] text-slate-900">
-    <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-      <section class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white/80 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur">
-        <div class="grid gap-10 px-5 py-8 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:px-12 lg:py-12">
-          <div class="flex flex-col justify-between gap-8">
-            <div class="space-y-6">
-              <div class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700">
+  <body>
+    <main>
+      <section class="hero">
+        <div class="hero-grid">
+          <div>
+            <div style="display:grid; gap:24px;">
+              <div class="badge">
                 SEO copy for Shopify sellers and agencies
               </div>
-              <div class="max-w-2xl space-y-5">
-                <h1 class="max-w-xl text-5xl font-black tracking-tight text-slate-950 sm:text-6xl lg:text-7xl">
+              <div style="display:grid; gap:18px; max-width: 760px;">
+                <h1>
                   Generate Shopify descriptions that sell more
                 </h1>
-                <p class="max-w-2xl text-lg leading-8 text-slate-600 sm:text-xl">
+                <p class="lead">
                   Paste a product title and specs, then get polished descriptions in professional, casual, and urgent tones.
                   Built for merchants who need faster publishing, stronger SEO, and copy that sounds ready to buy.
                 </p>
               </div>
-              <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <a href="/pay" class="inline-flex items-center justify-center rounded-full bg-amber-500 px-8 py-3 text-lg font-bold text-slate-950 transition hover:bg-amber-400">
+              <div class="actions">
+                <a href="/pay" class="cta">
                   Buy now - $15/mo
                 </a>
-                <a href="#generator-form" class="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-8 py-3 text-lg font-bold text-slate-800 transition hover:border-slate-900 hover:text-slate-950">
+                <a href="#generator-form" class="secondary">
                   Try the generator
                 </a>
               </div>
-              <div class="flex flex-wrap items-center gap-4 text-sm text-slate-500">
-                <span class="font-semibold text-slate-700">MVP placeholder:</span>
+              <div class="muted" style="display:flex; flex-wrap:wrap; gap:12px; font-size: 0.95rem;">
+                <span style="font-weight:700; color:#e2e8f0;">MVP placeholder:</span>
                 <span>"We turn one messy spec sheet into three publish-ready descriptions in minutes."</span>
               </div>
             </div>
 
-            <div class="grid gap-4 sm:grid-cols-3">
-              <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p class="text-xs font-bold uppercase tracking-[0.24em] text-slate-500">Step 1</p>
-                <p class="mt-2 text-sm font-semibold text-slate-900">Paste title and specs</p>
+            <div class="feature-grid" style="margin-top: 24px;">
+              <div class="glass">
+                <p class="panel-title">Step 1</p>
+                <p style="margin-top:8px; font-weight:700; color:#fff;">Paste title and specs</p>
               </div>
-              <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p class="text-xs font-bold uppercase tracking-[0.24em] text-slate-500">Step 2</p>
-                <p class="mt-2 text-sm font-semibold text-slate-900">Pick a tone and preview the SEO copy</p>
+              <div class="glass">
+                <p class="panel-title">Step 2</p>
+                <p style="margin-top:8px; font-weight:700; color:#fff;">Pick a tone and preview the SEO copy</p>
               </div>
-              <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p class="text-xs font-bold uppercase tracking-[0.24em] text-slate-500">Step 3</p>
-                <p class="mt-2 text-sm font-semibold text-slate-900">Copy the version that fits the listing</p>
+              <div class="glass">
+                <p class="panel-title">Step 3</p>
+                <p style="margin-top:8px; font-weight:700; color:#fff;">Copy the version that fits the listing</p>
               </div>
             </div>
           </div>
 
-          <div class="space-y-4">
-            <div class="rounded-[1.75rem] border border-slate-200 bg-slate-950 p-4 text-slate-50 shadow-2xl shadow-slate-950/10 sm:p-6">
-              <div class="mb-5 flex items-center justify-between gap-3">
+          <div>
+            <div class="studio">
+              <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:18px;">
                 <div>
-                  <p class="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Description studio</p>
-                  <h2 class="mt-2 text-2xl font-bold text-white">Generate three tones instantly</h2>
+                  <p class="panel-title" style="color:#94a3b8;">Description studio</p>
+                  <h2 style="margin-top:8px; font-size: 1.8rem; font-weight: 800;">Generate three tones instantly</h2>
                 </div>
-                <div class="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-amber-300 ring-1 ring-white/10">
+                <div style="border-radius:999px; background:rgba(255,255,255,0.08); padding:8px 12px; font-size:0.78rem; font-weight:800; color:#fde68a; border:1px solid rgba(255,255,255,0.08);">
                   Copy in one click
                 </div>
               </div>
 
-              <form id="generator-form" class="space-y-4">
-                <label class="block">
-                  <span class="mb-2 block text-sm font-semibold text-slate-200">Product title</span>
+              <form id="generator-form" method="post" action="/submit" style="display:grid; gap:16px;">
+                <label class="field">
+                  <span>Product title</span>
                   <input name="title" type="text" placeholder="Premium stainless steel water bottle" class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-slate-400 outline-none ring-0 transition focus:border-amber-400">
                 </label>
-                <label class="block">
-                  <span class="mb-2 block text-sm font-semibold text-slate-200">Product specs</span>
+                <label class="field">
+                  <span>Product specs</span>
                   <textarea name="specs" rows="6" placeholder="Insulated, leak-proof lid, 24-hour cold retention, BPA-free, 32 oz capacity" class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-slate-400 outline-none ring-0 transition focus:border-amber-400"></textarea>
                 </label>
-                <label class="block">
-                  <span class="mb-2 block text-sm font-semibold text-slate-200">Audience or angle</span>
+                <label class="field">
+                  <span>Audience or angle</span>
                   <input name="audience" type="text" placeholder="Busy shoppers, eco-conscious buyers, gift buyers" class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-slate-400 outline-none ring-0 transition focus:border-amber-400">
                 </label>
-                <button id="submit-button" type="submit" class="w-full rounded-2xl bg-amber-500 px-8 py-3 text-lg font-bold text-slate-950 transition hover:bg-amber-400">
+                <button id="submit-button" type="submit" class="small-cta" style="width:100%; border:none;">
                   Generate descriptions
                 </button>
-                <p id="form-status" class="text-sm text-slate-300">Ready to generate.</p>
+                <p id="form-status" class="status">Ready to generate.</p>
               </form>
             </div>
 
-            <div id="output-panel" class="space-y-4">
-              <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div class="flex items-center justify-between gap-4">
+            <div id="output-panel" class="copy-grid" style="margin-top: 16px;">
+              <div class="output-card">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:16px;">
                   <div>
-                    <p class="text-xs font-bold uppercase tracking-[0.24em] text-slate-500">Preview</p>
-                    <h3 class="mt-2 text-xl font-bold text-slate-900">Ready-made sample output</h3>
+                    <p class="panel-title" style="color:#64748b;">Preview</p>
+                    <h3 style="margin-top:8px; font-size:1.25rem; font-weight:800; color:#0f172a;">Ready-made sample output</h3>
                   </div>
                 </div>
-                <p class="mt-4 text-sm leading-6 text-slate-600">
+                <p style="margin-top:16px; font-size:0.95rem; color:#475569;">
                   The generator will replace this preview after you submit the form.
                 </p>
               </div>
@@ -118,40 +271,40 @@
         </div>
       </section>
 
-      <section class="mt-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-        <div class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
-          <p class="text-xs font-bold uppercase tracking-[0.24em] text-slate-500">How it works</p>
-          <h2 class="mt-3 text-3xl font-bold text-slate-950">A faster way to ship product copy</h2>
-          <div class="mt-6 grid gap-4 sm:grid-cols-3">
-            <div class="rounded-2xl bg-slate-50 p-4">
-              <p class="text-sm font-semibold text-slate-900">SEO-aware structure</p>
-              <p class="mt-2 text-sm leading-6 text-slate-600">Descriptions are shaped around clear benefits and keyword-friendly language.</p>
+      <section class="section-grid">
+        <div class="paper">
+          <p class="panel-title" style="color:#64748b;">How it works</p>
+          <h2 style="margin-top:10px; font-size:2rem; font-weight:800; color:#020617;">A faster way to ship product copy</h2>
+          <div class="info-grid" style="margin-top:20px;">
+            <div style="border-radius:18px; background:#f8fafc; padding:16px;">
+              <p style="font-weight:800; color:#0f172a;">SEO-aware structure</p>
+              <p style="margin-top:8px; font-size:0.95rem; color:#475569;">Descriptions are shaped around clear benefits and keyword-friendly language.</p>
             </div>
-            <div class="rounded-2xl bg-slate-50 p-4">
-              <p class="text-sm font-semibold text-slate-900">Three tone variants</p>
-              <p class="mt-2 text-sm leading-6 text-slate-600">Professional, casual, and urgent versions let you choose the right angle for each SKU.</p>
+            <div style="border-radius:18px; background:#f8fafc; padding:16px;">
+              <p style="font-weight:800; color:#0f172a;">Three tone variants</p>
+              <p style="margin-top:8px; font-size:0.95rem; color:#475569;">Professional, casual, and urgent versions let you choose the right angle for each SKU.</p>
             </div>
-            <div class="rounded-2xl bg-slate-50 p-4">
-              <p class="text-sm font-semibold text-slate-900">One-click copy</p>
-              <p class="mt-2 text-sm leading-6 text-slate-600">Copy a single tone or all three so you can move from draft to product page quickly.</p>
+            <div style="border-radius:18px; background:#f8fafc; padding:16px;">
+              <p style="font-weight:800; color:#0f172a;">One-click copy</p>
+              <p style="margin-top:8px; font-size:0.95rem; color:#475569;">Copy a single tone or all three so you can move from draft to product page quickly.</p>
             </div>
           </div>
         </div>
 
-        <div class="rounded-[2rem] border border-slate-200 bg-slate-950 p-6 text-white shadow-sm">
-          <p class="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Pricing</p>
-          <h2 class="mt-3 text-3xl font-bold">Simple pricing for busy sellers</h2>
-          <div class="mt-6 rounded-3xl bg-white/5 p-5 ring-1 ring-white/10">
-            <div class="flex items-end justify-between gap-4">
+        <div class="pricing">
+          <p class="panel-title">Pricing</p>
+          <h2 style="margin-top:10px; font-size:2rem; font-weight:800;">Simple pricing for busy sellers</h2>
+          <div style="margin-top:20px; border-radius:24px; background: rgba(255,255,255,0.05); padding:20px; border:1px solid rgba(255,255,255,0.08);">
+            <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:16px;">
               <div>
-                <p class="text-sm font-semibold text-slate-300">Starter</p>
-                <p class="mt-1 text-4xl font-black text-white">$15<span class="text-base font-semibold text-slate-400">/mo</span></p>
+                <p style="font-size:0.95rem; font-weight:700; color:#cbd5e1;">Starter</p>
+                <p style="margin-top:6px; font-size:2.5rem; line-height:1; font-weight:900; color:#fff;">$15<span style="font-size:1rem; font-weight:700; color:#94a3b8;">/mo</span></p>
               </div>
-              <a href="/pay" class="rounded-full bg-amber-500 px-6 py-3 text-base font-bold text-slate-950 transition hover:bg-amber-400">
+              <a href="/pay" class="small-cta">
                 Buy now
               </a>
             </div>
-            <ul class="mt-6 space-y-3 text-sm text-slate-300">
+            <ul style="margin:20px 0 0; padding-left:18px; display:grid; gap:10px; color:#cbd5e1; font-size:0.95rem;">
               <li>Unlimited description drafts</li>
               <li>Professional, casual, and urgent tones</li>
               <li>SEO-focused summaries and keyword hints</li>

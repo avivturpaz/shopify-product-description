@@ -32,7 +32,7 @@ def write_pm_alert(product, alert_type, message):
         pass
 
 app = Flask(__name__)
-required = ["POLAR_PRODUCT_ID", "APP_SECRET_KEY"]
+required = ["POLAR_PRODUCT_ID_SHOPIFY", "APP_SECRET_KEY"]
 missing = [v for v in required if not os.environ.get(v)]
 if missing:
     app.logger.error("Missing env vars at startup: %s", missing)
@@ -319,7 +319,7 @@ def submit():
                     "20+ free users hit limit today",
                 )
 
-            polar_id = os.environ.get("POLAR_PRODUCT_ID", "").strip()
+            polar_id = os.environ.get("POLAR_PRODUCT_ID_SHOPIFY", "").strip()
             pay_url = f"https://buy.polar.sh/{polar_id}" if polar_id else "/pay"
             return json_error(
                 f"You've used your free generation. Get unlimited access for $15.",
@@ -369,7 +369,7 @@ def submit():
 
 @app.route("/pay")
 def pay():
-    product_id = os.environ.get("POLAR_PRODUCT_ID", "").strip()
+    product_id = os.environ.get("POLAR_PRODUCT_ID_SHOPIFY", "").strip()
     if not product_id:
         return json_error("POLAR_PRODUCT_ID is required", status=500)
     return redirect(f"https://buy.polar.sh/{product_id}", code=302)

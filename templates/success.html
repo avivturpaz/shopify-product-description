@@ -5,28 +5,78 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Payment Successful</title>
     <meta name="description" content="Your payment was successful. Start generating Shopify product descriptions now.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <script defer src="https://cdn.tailwindcss.com"></script>
-    {% if plausible_domain %}
-    <script defer data-domain="{{ plausible_domain }}" src="https://plausible.io/js/script.js"></script>
-    {% endif %}
-    <style>body { font-family: "Space Grotesk", sans-serif; }</style>
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #f8fafc;
+        background:
+          radial-gradient(circle at top, rgba(251, 191, 36, 0.14), transparent 34%),
+          linear-gradient(180deg, #020617 0%, #0f172a 100%);
+      }
+      a { color: inherit; text-decoration: none; }
+      main {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .card {
+        width: min(760px, 100%);
+        border-radius: 28px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.06);
+        padding: 32px;
+        box-shadow: 0 24px 80px rgba(2, 6, 23, 0.45);
+      }
+      .eyebrow {
+        display: inline-block;
+        text-transform: uppercase;
+        letter-spacing: 0.22em;
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: #fcd34d;
+      }
+      h1 {
+        margin: 14px 0 0;
+        font-size: clamp(2.8rem, 6vw, 4.8rem);
+        line-height: 0.95;
+        letter-spacing: -0.05em;
+        font-weight: 900;
+      }
+      p { line-height: 1.7; }
+      .lead { margin-top: 16px; font-size: 1.1rem; color: #cbd5e1; max-width: 44rem; }
+      .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+      .cta, .secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        padding: 14px 24px;
+        font-size: 1rem;
+        font-weight: 800;
+        text-decoration: none;
+      }
+      .cta { background: #f59e0b; color: #111827; }
+      .secondary { border: 1px solid rgba(255,255,255,0.16); color: #fff; background: rgba(255,255,255,0.04); }
+    </style>
   </head>
-  <body class="bg-slate-950 text-white">
-    <main class="mx-auto flex min-h-screen max-w-3xl items-center px-4 py-16">
-      <section class="w-full rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-2xl shadow-black/20">
-        <p class="text-sm font-bold uppercase tracking-[0.24em] text-amber-300">Payment successful</p>
-        <h1 class="mt-4 text-5xl font-black tracking-tight">You’re ready to generate faster copy</h1>
-        <p class="mt-4 max-w-2xl text-lg leading-8 text-slate-300">
+  <body>
+    <main>
+      <section class="card">
+        <p class="eyebrow">Payment successful</p>
+        <h1>You’re ready to generate faster copy</h1>
+        <p class="lead">
           Start pasting product titles and specs to create professional, casual, and urgent Shopify descriptions in one pass.
         </p>
-        <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-          <a href="/" class="inline-flex items-center justify-center rounded-full bg-amber-500 px-8 py-3 text-lg font-bold text-slate-950 transition hover:bg-amber-400">
+        <div class="actions">
+          <a href="/" class="cta">
             Back to generator
           </a>
-          <a href="/pay" class="inline-flex items-center justify-center rounded-full border border-white/15 px-8 py-3 text-lg font-bold text-white transition hover:bg-white/10">
+          <a href="/pay" class="secondary">
             Open checkout again
           </a>
         </div>

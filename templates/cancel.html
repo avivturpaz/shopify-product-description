@@ -5,28 +5,78 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Checkout Cancelled</title>
     <meta name="description" content="Checkout was cancelled. Return to the Shopify product description generator anytime.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <script defer src="https://cdn.tailwindcss.com"></script>
-    {% if plausible_domain %}
-    <script defer data-domain="{{ plausible_domain }}" src="https://plausible.io/js/script.js"></script>
-    {% endif %}
-    <style>body { font-family: "Space Grotesk", sans-serif; }</style>
+    <style>
+      :root { color-scheme: light; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #0f172a;
+        background:
+          radial-gradient(circle at top, rgba(59, 130, 246, 0.12), transparent 34%),
+          linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+      }
+      a { color: inherit; text-decoration: none; }
+      main {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .card {
+        width: min(760px, 100%);
+        border-radius: 28px;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        background: rgba(255, 255, 255, 0.92);
+        padding: 32px;
+        box-shadow: 0 24px 72px rgba(15, 23, 42, 0.12);
+      }
+      .eyebrow {
+        display: inline-block;
+        text-transform: uppercase;
+        letter-spacing: 0.22em;
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: #64748b;
+      }
+      h1 {
+        margin: 14px 0 0;
+        font-size: clamp(2.8rem, 6vw, 4.8rem);
+        line-height: 0.95;
+        letter-spacing: -0.05em;
+        font-weight: 900;
+      }
+      p { line-height: 1.7; }
+      .lead { margin-top: 16px; font-size: 1.1rem; color: #475569; max-width: 44rem; }
+      .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+      .cta, .secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        padding: 14px 24px;
+        font-size: 1rem;
+        font-weight: 800;
+        text-decoration: none;
+      }
+      .cta { background: #f59e0b; color: #111827; }
+      .secondary { border: 1px solid rgba(100,116,139,0.28); color: #0f172a; background: #fff; }
+    </style>
   </head>
-  <body class="bg-slate-50 text-slate-900">
-    <main class="mx-auto flex min-h-screen max-w-3xl items-center px-4 py-16">
-      <section class="w-full rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
-        <p class="text-sm font-bold uppercase tracking-[0.24em] text-slate-500">Checkout cancelled</p>
-        <h1 class="mt-4 text-5xl font-black tracking-tight">No problem, you can come back anytime</h1>
-        <p class="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
+  <body>
+    <main>
+      <section class="card">
+        <p class="eyebrow">Checkout cancelled</p>
+        <h1>No problem, you can come back anytime</h1>
+        <p class="lead">
           The generator is still here when you’re ready to create sharper Shopify product descriptions.
         </p>
-        <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-          <a href="/" class="inline-flex items-center justify-center rounded-full bg-amber-500 px-8 py-3 text-lg font-bold text-slate-950 transition hover:bg-amber-400">
+        <div class="actions">
+          <a href="/" class="cta">
             Return to generator
           </a>
-          <a href="/pay" class="inline-flex items-center justify-center rounded-full border border-slate-300 px-8 py-3 text-lg font-bold text-slate-800 transition hover:border-slate-900 hover:text-slate-950">
+          <a href="/pay" class="secondary">
             Try checkout again
           </a>
         </div>

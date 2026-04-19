@@ -12,6 +12,7 @@
     <link rel="canonical" href="https://shopify-product-description.onrender.com">
     <meta name="twitter:card" content="summary_large_image">
     {% if plausible_domain %}<script defer data-domain="{{ plausible_domain }}" src="https://plausible.io/js/script.js"></script>{% endif %}
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
       :root {
         color-scheme: light;
@@ -203,9 +204,8 @@
                   Try the generator
                 </a>
               </div>
-              <div class="muted" style="display:flex; flex-wrap:wrap; gap:12px; font-size: 0.95rem;">
-                <span style="font-weight:700; color:#e2e8f0;">MVP placeholder:</span>
-                <span>"We turn one messy spec sheet into three publish-ready descriptions in minutes."</span>
+              <div style="font-size: 0.9rem; color: #94a3b8; margin-top: 4px;">
+                ✓ No signup required &nbsp;•&nbsp; Free to try &nbsp;•&nbsp; 3 tone options
               </div>
             </div>
 
@@ -322,5 +322,8 @@
       window.__INITIAL_DEMO__ = {{ sample_tones | tojson }};
     </script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
+    <footer style="margin-top: 2rem; text-align: center; font-size: 0.75rem; color: #475569; padding-bottom: 1.5rem;">
+      Questions? <a href="mailto:venture.agent.mail@gmail.com" style="color: #94a3b8;">Contact support</a>
+    </footer>
   </body>
 </html>

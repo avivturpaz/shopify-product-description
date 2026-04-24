@@ -3,3 +3,4 @@ gunicorn
 requests
 groq
 flask-limiter
+sentry-sdk[flask]

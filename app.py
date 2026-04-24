@@ -7,11 +7,17 @@ from datetime import datetime, timezone
 
 logging.basicConfig(level=logging.INFO)
 
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
 from flask import Flask, jsonify, redirect, render_template, request, url_for
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from groq import Groq
 from werkzeug.exceptions import HTTPException
+
+SENTRY_DSN = os.environ.get('SENTRY_DSN', '')
+if SENTRY_DSN:
+    sentry_sdk.init(dsn=SENTRY_DSN, integrations=[FlaskIntegration()], traces_sample_rate=0.1)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "data.db")
@@ -365,6 +371,35 @@ def submit():
         conn.close()
 
     return jsonify(result)
+
+
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    try:
+        data = request.get_json(silent=True) or {}
+        if data.get("type") == "order.created":
+            order = data.get("data", {})
+            polar_order_id = order.get("id", "")
+            product_id = (order.get("product") or {}).get("id", "")
+            amount = (order.get("amount") or 0) / 100.0
+            currency = (order.get("currency") or "usd").upper()
+            customer_email = (order.get("customer") or {}).get("email", "")
+            try:
+                import sqlite3 as _sqlite3
+                _db = os.path.join(os.path.dirname(__file__), "..", "..", "data", "venture.db")
+                _conn = _sqlite3.connect(_db)
+                _conn.execute(
+                    "INSERT OR IGNORE INTO revenue (product, polar_product_id, amount, currency, customer_email, polar_order_id) VALUES (?, ?, ?, ?, ?, ?)",
+                    ("shopify-product-description", product_id, amount, currency, customer_email, polar_order_id),
+                )
+                _conn.commit()
+                _conn.close()
+            except Exception as exc:
+                app.logger.error("webhook db error: %s", exc)
+            write_pm_alert("shopify-product-description", "info", f"New sale: ${amount} from {customer_email}")
+    except Exception as exc:
+        app.logger.error("webhook error: %s", exc)
+    return jsonify({"ok": True}), 200
 
 
 @app.route("/pay")
